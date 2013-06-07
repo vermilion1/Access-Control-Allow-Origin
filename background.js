@@ -1,62 +1,66 @@
-var requestListener = function(details){
-	var flag = false,
-		rule = {
-			name: "Origin",
-			value: "http://evil.com/"
-		};
+var requestListener = function (details) {
+  var flag = false,
+      rule = {
+        name: "Origin",
+        value: "http://evil.com/"
+      };
 
-	for (var i = 0; i < details.requestHeaders.length; ++i) {
-		if (details.requestHeaders[i].name === rule.name) {
-			flag = true;
-			details.requestHeaders[i].value = rule.value;
-			break;
-		}
-	}
-	if(!flag) details.requestHeaders.push(rule);
-	return {requestHeaders: details.requestHeaders};
+  for (var i = 0; i < details.requestHeaders.length; ++i) {
+    if (details.requestHeaders[i].name === rule.name) {
+      flag = true;
+      details.requestHeaders[i].value = rule.value;
+      break;
+    }
+  }
+  if (!flag) details.requestHeaders.push(rule);
+  return {requestHeaders: details.requestHeaders};
 };
 
-var responseListener = function(details){
-	var rule = {
-			"name": "Access-Control-Allow-Origin",
-			"value": "*"
-		};
+var responseListener = function (details) {
+  var Origin = {
+    "name": "Access-Control-Allow-Origin",
+    "value": "*"
+  };
+  var Headers = {
+    "name": "Access-Control-Allow-Headers",
+    "value": "Authorization"
+  };
 
-	details.responseHeaders.push(rule);
+  details.responseHeaders.push(Origin, Headers);
 
-	return {responseHeaders: details.responseHeaders};
+  return {responseHeaders: details.responseHeaders};
 };
 
 
 /*On install*/
-chrome.runtime.onInstalled.addListener(function(){
-	localStorage.active = false;
+chrome.runtime.onInstalled.addListener(function () {
+  localStorage.active = false;
 });
 
 /*Icon change*/
-chrome.browserAction.onClicked.addListener(function(tab){
-	if(localStorage.active === "true"){
-		localStorage.active = false;
-		chrome.browserAction.setIcon({path: "off.png"});
+chrome.browserAction.onClicked.addListener(function (tab) {
+  if (localStorage.active === "true") {
+    localStorage.active = false;
+    chrome.browserAction.setIcon({path: "off.png"});
 
-		/*Remove Response Listener*/
-		chrome.webRequest.onHeadersReceived.removeListener(responseListener);
-		chrome.webRequest.onBeforeSendHeaders.removeListener(requestListener);
-	}else{
-		localStorage.active = true;
-		chrome.browserAction.setIcon({path: "on.png"});
+    /*Remove Response Listener*/
+    chrome.webRequest.onHeadersReceived.removeListener(responseListener);
+    chrome.webRequest.onBeforeSendHeaders.removeListener(requestListener);
+  } else {
+    localStorage.active = true;
+    chrome.browserAction.setIcon({path: "on.png"});
 
-		/*Add Response Listener*/
-		chrome.webRequest.onHeadersReceived.addListener(responseListener,{
-			urls: [
-				"*://*/*"
-			]
-		},["blocking", "responseHeaders"]);
+    /*Add Response Listener*/
+    chrome.webRequest.onHeadersReceived.addListener(responseListener, {
+      urls: [
+        "*://*/*"
+      ]
+    }, ["blocking", "responseHeaders"]);
 
-		chrome.webRequest.onBeforeSendHeaders.addListener(requestListener,{
-			urls: [
-				"*://*/*"
-			]
-		},["requestHeaders"]);
-	}
+    chrome.webRequest.onBeforeSendHeaders.addListener(requestListener, {
+      urls: [
+        "*://*/*"
+      ]
+    }, ["requestHeaders"]);
+  }
 });
