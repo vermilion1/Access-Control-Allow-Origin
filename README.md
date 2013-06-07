@@ -1,4 +1,5 @@
-Access-Control-Allow-Origin
-===========================
+####Access-Control-Allow-Origin
+> *
 
-Chrome extension: https://chrome.google.com/webstore/detail/allow-control-allow-origi/nlfbmbojpeacfghkpbjhddihlkkiljbi
+####Access-Control-Allow-Headers
+> Authorization
